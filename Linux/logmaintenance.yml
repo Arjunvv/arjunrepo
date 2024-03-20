@@ -1,0 +1,28 @@
+---
+- name: 'Purge old logs'
+  gather_facts: no
+  become: yes
+  become_user: root
+  become_method: sudo
+  hosts: "{{ VARIABLE_HOST | default('all') }}"
+  tasks:
+  
+   - name: Delete audit and archive logs older than 90 days
+     shell: |
+      #rm -rf $(ls -t /var/log/audit/*.log.* | awk 'NR>10')
+      find /var/log/ -name "*.gz" -mtime +90 -type f -exec rm -rf {} \;
+    
+    
+   - name: Truncate message and command.logs ( latest 100 lines )
+     shell: | 
+      echo "$(tail -100 /var/log/messages)" > /var/log/messages
+      echo "$(tail -100 /var/log/commands.log)" > /var/log/commands.log
+      
+   - name: Truncate Journald Audit ( latest 100 lines ) 
+     shell: |
+      for i in `find /var/log/audit -name "*.log.*"`; do echo "$(tail -100 $i)" > $i;done
+      journalctl --vacuum-size=500M
+
+   - name: root mail ( latest 100 lines ) 
+     shell: |
+      echo "$(tail -100 /var/spool/mail/root)" > /var/spool/mail/root

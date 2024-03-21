@@ -1,0 +1,15 @@
+---
+- name: mount nfsshares
+  hosts: all
+  tasks:
+   - name: mount all NFS Mount Points
+     ignore_errors: yes
+     become: yes
+     become_method: sudo
+     become_user: root
+     shell: |
+       NFSmounts=$(cat /etc/fstab | grep nfs | awk -F ' ' '{print $2}')
+       for i in $NFSmounts
+       do
+       umount -f $i
+       done

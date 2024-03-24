@@ -1,0 +1,11 @@
+---
+- name: Application stop
+  hosts: all
+  tasks:
+   - name: stopnginx
+     become: yes
+     become_method: sudo
+     become_user: root
+     shell: |
+      for i in 'ls -l /etc/systemd/system | egrep -i "nginx"'; do systemctl stop $i; done
+#####we can use this for apps stop, start, enable, disable as well
